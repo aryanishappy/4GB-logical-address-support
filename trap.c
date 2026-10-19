@@ -78,6 +78,11 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
 
+  case T_PGFLT:
+    cprintf("killing process now\n\n");
+    struct proc* p = myproc();
+    p->killed = 1;
+    break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
