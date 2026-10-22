@@ -323,10 +323,9 @@ copyuvm(pde_t *pgdir, uint sz)
   if((d = setupkvm()) == 0)
     return 0;
   for(i = 0; i < sz; i += PGSIZE){
-    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
-      panic("copyuvm: pte should exist");
-    if(!(*pte & PTE_P))
-      panic("copyuvm: page not present");
+    pte = walkpgdir(pgdir, (void *)i, 0);
+    if(pte == 0 || !(*pte & PTE_P))
+      continue;
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
     if((mem = kalloc()) == 0)
@@ -400,4 +399,19 @@ int off_present_bit(pde_t* pgdir, char* va) {
   *p &= ~PTE_P;
   lcr3(V2P(pgdir));
   return 0; 
+}
+
+int lazy_alloc(pde_t* pgdir, uint va) {
+  char *new_mem = kalloc();
+  if(new_mem == 0)  return -1;
+
+  memset(new_mem, 0, PGSIZE);
+
+  int res = mappages(pgdir, (void *)PGROUNDDOWN(va), PGSIZE, V2P(new_mem), PTE_W | PTE_P | PTE_U);
+  
+  if(res < 0) {
+    kfree(new_mem);
+    return -1;
+  }
+  return res;
 }

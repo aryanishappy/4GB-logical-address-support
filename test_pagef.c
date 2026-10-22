@@ -3,12 +3,13 @@
 #include "user.h"
 
 int main(void) {
-    char* c = sbrk(4096);
+    char* c = sbrk(10000);
     if(c == (char *) -1) {
         printf(1, "Memory allot na ho payi\n");
         exit();
     }
 
+    printf(1, "Address of c is %x\n", c);
     if(remove_mapping(c)) {
         printf(1, "Mapping could not be modified\n");
         exit();

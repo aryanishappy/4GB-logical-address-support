@@ -79,9 +79,43 @@ trap(struct trapframe *tf)
     break;
 
   case T_PGFLT:
-    cprintf("killing process now\n\n");
+    int fa = rcr2();
+    int pgaddr = PGROUNDDOWN(fa);
     struct proc* p = myproc();
-    p->killed = 1;
+    
+    if(p == 0 || (tf->cs & 3) != DPL_USER) {
+      panic("kernel page fault");
+    }
+    
+    if(tf->err & 1) {
+      cprintf("Protection fault at %x\n", fa);
+      p->killed = 1;
+      break;
+    }
+    if(tf->err & 8) {
+      cprintf("Reserved-bit violation\n");
+      p->killed = 1;
+      break;
+    }
+    if(fa >= KERNBASE || fa >= p->sz) {
+      cprintf("Invalid address\n");
+      p->killed = 1;
+      break;
+    }
+    if(fa < p->heap_start) {
+      cprintf("Address not in lazy heap\n");
+      p->killed = 1;
+      break;
+    }
+
+    if(lazy_alloc(p->pgdir, fa) < 0) {
+      cprintf("Lazy allocation failed");
+      p->killed = 1;
+      break;
+    }
+
+    cprintf("Demand paging successful: pid = %d, addr = %x\n", p->pid, PGROUNDDOWN(fa)); // lesssss gooooooooooo
+
     break;
   //PAGEBREAK: 13
   default:
