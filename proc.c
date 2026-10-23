@@ -532,3 +532,8 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+int remove_mapping(char* va) {
+  struct proc* p = myproc();
+  return off_present_bit(p->pgdir, va);
+}

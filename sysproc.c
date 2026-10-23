@@ -89,3 +89,11 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int sys_remove_mapping(void) {
+  int addr;
+  if(argint(0, &addr) < 0)
+    return -1;
+
+  return remove_mapping((char *)addr);
+}

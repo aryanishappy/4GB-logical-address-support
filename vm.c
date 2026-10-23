@@ -392,3 +392,12 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
 //PAGEBREAK!
 // Blank page.
 
+int off_present_bit(pde_t* pgdir, char* va) {
+  pte_t* p = walkpgdir(pgdir, va, 0);
+  if(!p || !(*p & PTE_P)) {
+    return 1;
+  }
+  *p &= ~PTE_P;
+  lcr3(V2P(pgdir));
+  return 0; 
+}

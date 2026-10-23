@@ -121,6 +121,8 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 
+int             remove_mapping(char *va);
+
 // swtch.S
 void            swtch(struct context**, struct context*);
 
